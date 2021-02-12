@@ -1,0 +1,823 @@
+---
+output: pdf_document
+---
+
+
+
+```{r,echo=FALSE,include=FALSE}
+library(ggplot2)
+library(modeest)
+data(diamonds)
+dat<-data.frame(corte=diamonds$cut,precio=diamonds$price,quilates=diamonds$carat)
+```
+
+\center
+\textsc{\LARGE Universidad Nacional Autónoma de México}<p> 
+\textsc{\Large Facultad de Estudios Superiores Acatlán}<p>
+\begin{large}
+Ambrocio Loreto Luis Manuel\\
+Barajas Rivera Michael Alejandro
+\end{large}\
+\rule{80mm}{0.1mm} \
+\begin{large}
+Profesora:Elizabeth Martínez Gomez\
+\end{large}\
+\rule{5mm}{0.1mm} \
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r min, include=FALSE}
+summary(dat)
+```
+
+```{r moda, include=FALSE}
+mfv(dat$precio)
+mfv(dat$corte)
+```
+
+## Introducción
+\flushleft
+Antes de realizar este proyecto, estabamos buscando un tema relacionado con gemas preciosas, debido a que buscábamos algo fuera de lo común, es decir, un tema que no fuera considerado un problema social o similar. Fue ahí cuando descubrimos en una librería un dataframe con información acerca de diamantes, en donde podíamos encontrar valores como; corte, precio y quilate. Esto nos facilitó la búsqueda del tema del proyecto, además de cumplir con los requisitos necesarios para realizar el proyecto de manera adecuada.
+\center 
+
+## Análisis Exploratorio de Datos
+
+\flushleft
+
+Primero definimos nuestras variables de la siguiente manera: 
+\center 
+
+$X_1 =$ Corte <p>
+$X_2 =$ Precio (\$)<p>
+$X_3 =$ Quilate (Ct)<p><p>
+\flushleft
+
+Ahora, las clasificamos por tipo de variable y escala de medición, de tal manera que obtenemos la siguiente tabla:
+\center
+
+| Variable | $X_1$ | $X_2$ | $X_3$ |
+|----------|-------|-------|-------|
+| Tipo | cualitativo | cuantitativo | cuantitativo  |
+| Escala de medición| Ordinal | De razón | De razón |
+\flushleft
+
+Una vez clasificados los datos, podemos obtener la información de los estadísticos correspondientes:
+\center
+
+| Variable | $X_1$ | $X_2$ (\$) | $X_3$ (Ct) |
+|----------|-------|-------|-------|
+| Mínimo |  | 326 | 0.2 |
+| q1 |  | 950 | 0.4 |
+| q2 |  | 2401 | 0.7 |
+| Media |  | 3933 | 0.7979 |
+| q3 |  | 5324 | 1.04 |
+| Máximo |  | 18823 | 5.01 |
+| Desv. estándar |  | 3989.403 |  0.4740069 |
+| Moda | Ideal | 605 | 0.3 |
+\flushleft
+
+Gracias a esta tabla de datos, podemos generar distintas gráficas y diagramas que nos permitan tener una mayor visualización de la información. De esta manera, podemos obtener conclusiones respecto a la distribución que existe para cada variable.
+Por medio del siguiente histograma es posible percatarse de la gran diferencia de datos que existe entre los tipos de cortes, pues, podemos darnos cuenta de que los cortes de tipo "Fair" apenas se acercan a la cantidad de 2,500, mientras que los cortes de tipo "Ideal" superan las 20,000 unidades, habiendo una diferencia de más de 17,500 piezas.
+\center
+
+```{r g1,fig.height = 2,fig.width=4, echo=FALSE}
+ggplot(dat, aes(x=corte)) + geom_bar(fill="#F77927")
+```
+\flushleft
+
+Podemos observar por medio del diagrama de caja y brazos que los datos de la variable Precio no son simétricos. Se puede observar que existe una gran cantidad de valores atípicos del lado derecho del diagrama. De misma manera, podemos notar que el primer cuartil está más cerca de la mediana que el segundo cuartil, lo que nos da a entender que la primera mitad de los datos está muy amontonada, mientras que la segunda mitad se distribuye de manera dispersa.
+\center
+
+```{r g2,fig.height = 2,fig.width=4, echo=FALSE}
+ggplot(dat, aes(x=precio, y=)) + 
+  geom_boxplot(outlier.colour="orange",outlier.size=3)
+```
+\flushleft
+
+En este diagrama, de manera similar al anterior, se puede apreciar que no existe una simetria, existe una gran cantidad de valores atípicos despues del tercer cuartil, mientras que en la primera mitad de los datos, existe una distribución más junta.
+\center
+
+```{r g3,fig.height = 2,fig.width=4, echo=FALSE}
+ggplot(dat, aes(x=quilates)) +geom_boxplot(outlier.colour="orange",outlier.size=3)
+```
+\clearpage
+
+\flushleft
+
+Utilizaremos un diagrama de dispersión para estudiar las posibles relaciones entre la variable precio y la variable quilate 
+\center
+```{r g4,echo=FALSE,fig.height=3.5,fig.width=4}
+ggplot(dat,aes(quilates,precio)) + geom_point()+ggtitle("Grafica quilates vs precio",)
+```
+\flushleft
+Logramos ver una correlación fuerte positiva, esto quiere decir que entre mayor sea el quilate mayor es el precio, comprobemos esto con el coeficiente de correlacion de pearson 
+\center
+corr=`r cor(dat$quilate,dat$precio,method = "pearson")` 
+\flushleft
+Podemos verificar con el coeficiente de pearson que efectivamente hay correlacion fuerte positiva, ahora analizaremos que pasa con los datos en cada categoria para esto haremos una diagrama de dispersión por categoria
+\center
+```{r g5, echo=FALSE,fig.height=3.5,fig.width=5}
+qplot(quilates,precio,data = dat,facets = .~corte)+ggtitle("Grafica quilates vs precio",)
+```
+
+```{r,echo=FALSE,include=FALSE}
+f<-subset(dat, corte=="Fair")
+g<-subset(dat, corte=="Good")
+vg<-subset(dat, corte=="Very Good")
+p<-subset(dat, corte=="Premium")
+id<-subset(dat, corte=="Ideal")
+```
+\flushleft
+
+Ahora calculemos el coeficiente de correlación para cada subconjunto de datos
+\center
+
+|Subconjunto|corr|
+|-----------|----|
+|Fair|`r cor(f$quilate,f$precio,method = "pearson")`|
+|Good|`r cor(g$quilate,g$precio,method = "pearson")` |
+|Very Good|`r cor(vg$quilate,vg$precio,method = "pearson")` |
+|Premium|`r cor(p$quilate,p$precio,method = "pearson")` |
+|Ideal|`r cor(id$quilate,id$precio,method = "pearson")` |
+\flushleft
+
+Podemos ver tanto en la gráfica como que todos los subconjuntos de datos tienen un coeficiente de correlación fuerte y positivo, esto quiere decir que independientemente del tipo de corte a mayor quilate mayor es el precio. Ahora vamos a analizar la variable precios en cada categoria de la varible corte, primero calculemos algunas medidas de cada subconjunto 
+\center
+
+```{r,echo=FALSE,include=FALSE}
+cv<-function(x){
+  sqrt(var(x))/mean(x)
+}
+```
+
+|Estadístico|Fair|Good|Very Good|Premium|Ideal|
+|-----------|----|----|---------|-------|-----|
+|Media|`r mean(f$precio)`|`r mean(g$precio)`|`r mean(vg$precio)`|`r mean(p$precio)`|`r mean(id$precio)`|
+|Mediana|`r median(f$precio)`|`r median(g$precio)`|`r median(vg$precio)`|`r median(p$precio)`|`r median(id$precio)`|
+|CV|`r cv(f$precio)`|`r cv(g$precio)`|`r cv(vg$precio)`|`r cv(p$precio)`|`r cv(id$precio)`| 
+\flushleft
+
+Nos damos cuenta que para los 5 subconjuntos la mediana es menor  que la media, por lo que podemos pensar que hay un sesgo hacia la izquierda en la distribución de la gráfica, vemos también por el coeficiente de variación que hay mucha dispersión en los datos pero hay un poco menos de dispersión en el corte Fair, por los valores de media y mediana podemos darnos cuenta que los precios del corte ideal son menores que los demás, también podemos darnos cuenta que los cortes más caros son Fair y Premium, verifiquemos esto con gráficas.
+\center
+
+```{r,echo=FALSE,fig.height=3.5,fig.width=5}
+ggplot(dat,aes(x=precio,y=corte))+geom_boxplot()+ggtitle("grafica de cajas y brazos de precios por corte")
+
+```
+\flushleft
+
+Podemos ver en las gráficas que los datos tienen sesgo a la derecha, pues gran parte de los datos se encuentran de el lado derecho y tienen una gran cantidad de datos atípicos del lado izquierdo, vemos también que hay mucha dispersión en las datos pues el 50% de los datos(que corresponden a la caja) se encuentran en un espacio pequeño comparado con los brazos y datos atípicos, vemos que la caja correspondiente al corte ideal se encuentra más hacia la izquierda que los demás, lo cual indica que en general sus precios son menores, en el corte premium vemos unos brazos más largos y el tercer quartil se encuentra por encima de los demás, lo cual indica que tiene precios muy altos, pero se tiene una caja grande cuyo primer quartil se encuentra casi al mismo nivel que los corte Ideal, Good y Very Good, entonces también hay muchos precios bajos con corte premium, las gráficas Good y very Good son muy similares y podemos ver que el tercer quartil de Very Good se encuentra por encima de Good, pero también el primer quartil de Very Good se encuentra por debajo de Good, lo cual indica que tiene más precios bajos, pero también más precios altos, por último en Fair podemos ver una caja más pequeña lo cual indica que tiene precios más consistentes, es decir que gran parte de los precios se encuentran cerca de la media.
+\center
+\clearpage
+
+## Muestreo
+
+\flushleft
+
+La variable cuantitativa de la cual se obtendrá una muestra con la tecnica de Muestreo Aleatorio Simple y de tamaño 6, será $X_2$, que representa el precio.<p>
+
+Loa muestra obtenida por esta técnica es la siguiente: <p>
+
+$\Omega$ = {13348, 2190, 3570, 622, 6680, 1588}
+```{r mues, include=FALSE}
+set.seed(6)
+sample(dat$precio, 6, replace = FALSE)
+```
+
+A partir de esta muestra podemos obtener la media poblacional y su varianza <p>
+
+$$\mu = \frac{1}{N} \left( \displaystyle\sum_{i=1}^N x_i \right)= \frac{1}{6} \left( \displaystyle\sum_{i=1}^6 x_i \right) = 4,666.33$$
+$$\sigma^2 =\frac{1}{N} \left( \displaystyle\sum_{i=1}^{N} x_i^2-N\mu^2\right)=\frac{1}{6} \left( \displaystyle\sum_{i=1}^{6} x_i^2-130,648,000.66\right)=18,765,522$$
+\flushleft
+
+Lo siguiente que se muestra son todas las muestras posibles de tamaño 3, sin reemplazo y sin orden, que se pueden obtener de nuestra muestra $\Omega$.<p>
+{13348,2190,3570}
+{13348,2190,622}
+{13348,2190,6680}
+{13348,2190,1588}
+{13348,3570,622}
+{13348,3570,6680}
+{13348,3570,1588}
+{13348,622,6680}
+{13348,622,1588}
+{13348,6680,1588}
+{2190,3570,622}
+{2190,3570,6680}
+{2190,3570,1588}
+{2190,622,6680}
+{2190,622,1588}
+{2190,6680,1588}
+{3570,622,6680}
+{3570,622,1588}
+{3570,6680,1588}
+{622,6680,1588}
+
+
+```{r,echo=FALSE,include=FALSE}
+varpob<-function(x){
+  n<-length(x)
+  (sum(x*x)-n*mean(x)^2)/(n)
+}
+ muestra<-list(c(13348,2190,3570),c(13348,2190,622),c(13348,2190,6680),c(13348,2190,1588),c(13348,3570,622),c(13348,3570,6680),c(13348,3570,1588),c(13348,622,6680),c(13348,622,1588),c(13348,6680,1588),c(2190,3570,622),c(2190,3570,6680),c(2190,3570,1588),c(2190,622,6680),c(2190,622,1588),c(2190,6680,1588),c(3570,622,6680),c(3570,622,1588),c(3570,6680,1588),c(622,6680,1588))
+
+prob<-rep(1/length(muestra),length(muestra))#cada muestra tiene la misma probabilidad de ocurrencia E__
+
+Mean<-sapply(muestra,mean)
+dist_mean<-data.frame(prob=prob,Mean=Mean)
+E_mean<-sum(dist_mean$prob*dist_mean$Mean)#valor esperado 
+
+Var<-sapply(muestra,var)
+dist_var<-data.frame(prob=prob,Var=Var)
+E_var<-sum(dist_var$prob*dist_var$Var)#valor esperado 
+
+```
+
+Ahora, a continuación se muestran los resultados de la distribución de muestro para la media ($\overline{X}$).<p>
+\center 
+
+| Muestra | Probabilidad | Media |
+|:----------:|:-------:|-------:|
+| 1 | 0.05 | 6369.333 |
+| 2 | 0.05 | 5386.667 |
+| 3 | 0.05 | 7406.000 |
+| 4 | 0.05 | 5708.667 |
+| 5 | 0.05 | 5846.667 |
+| 6 | 0.05 | 7866.000 |
+| 7 | 0.05 | 168.667 |
+| 8 | 0.05 | 6883.333 |
+| 9 | 0.05 | 5186.000 |
+| 10 | 0.05 | 7205.333 |
+| 11 | 0.05 | 2127.333 |
+| 12 | 0.05 | 4146.667 |
+| 13 | 0.05 | 2449.333 |
+| 14 | 0.05 | 3164.000 |
+| 15 | 0.05 | 1466.667 |
+| 16 | 0.05 | 3486.000 |
+| 17 | 0.05 | 3624.000 |
+| 18 | 0.05 | 1926.667 |
+| 19 | 0.05 | 3946.000 |
+| 20 | 0.05 | 2963.333 |
+\flushleft
+
+De misma manera, podemos observar a continuación la tabla de distribución de la varianza muestral ($S^2$).
+\center 
+
+| Muestra | Probabilidad | Varianza |
+|:----------:|:-------:|:-------:|
+| 1 | 0.05 | 37002441.3 |
+| 2 | 0.05 | 48151777.3 |
+| 3 | 0.05 | 31520548.0 |
+| 4 | 0.05 | 43860161.3 |
+| 5 | 0.05 | 44375177.3 |
+| 6 | 0.05 | 24957268.0 |
+| 7 | 0.05 | 39639201.3 |
+| 8 | 0.05 | 40518777.3 |
+| 9 | 0.05 | 50196972.0 |
+| 10 | 0.05 | 34781381.3 |
+| 11 | 0.05 | 2175621.3 |
+| 12 | 0.05 | 5289433.3 |
+| 13 | 0.05 | 1032521.3 |
+| 14 | 0.05 | 9886348.0 |
+| 15 | 0.05 | 625697.3 |
+| 16 | 0.05 | 7741828.0 |
+| 17 | 0.05 | 9177028.0 |
+| 18 | 0.05 | 2258697.3 |
+| 19 | 0.05 | 6588148.0 |
+| 20 | 0.05 | 10593497.3 |
+\flushleft
+
+Una vez obtenidas ambas distribuciones muestrales, podemos obtener los valores esperados tanto de la media ($\overline{X}$), como de la varianza ($S^2$). <p>
+E($\overline{X}$)$=4,666.333$ <p>
+E($S^2$)$=22,518,626.266$<p>
+Comparando estos valores obtenidos con la media y la varianza de la muestra $\Omega$, podemos observar que el valor de la media es el mismo que el de la esperanza de la distribución de la media de las muestras de tamaño 3, cosa que no sucede con la varianza, pues el valor es distinto.<p><p><p>
+
+
+Ahora miremos el siguiente histograma de frecuencias 
+
+\center 
+
+```{r g6,fig.height = 3,fig.width=5, echo=FALSE}
+ggplot(dat, aes(precio)) +            # histograma
+  geom_histogram(bins = 30,fill = "blue",color="black")+
+  geom_freqpoly(bins = 30,color = "yellow")+ylab("Frecuencia")
+```
+\flushleft
+
+Podemos notar que esta gráfica tiene sesgo hacía la derecha, además de que es claro que la gráfica no está centrada, lo que nos permite comprender que la distribución de esta variable no es una distribución normal. Otra manera de apreciarlo, es observando el diagrama de caja y brazos mostrado anteriormente, en donde es posible observar que el 75% de los datos se encuentran del lado derecho, cosa que arruina la estructuria de una distribución normal, pues en la nromal se encuentran igualmente distribuidos.
+
+Ahora vamos a verificar el Terema Central del Límite el cual establece que cuando el tamaño de muestra es suficiente grande, la distribucion de muestreo del promedio sigue una Normal con media $\mu$ y varianza $\frac{\sigma^2}{n}$, para verificar esto obtendremos 6000 muestras de la variable quilates cada una con un tamaño n=1000, despues graficaremos el histograma del conjunto de promedios muestrales
+
+\center 
+
+```{r,echo=FALSE,warning=FALSE,fig.height=3.5,fig.width=4,message=FALSE}
+set.seed(5)
+muestra2<-list()
+for (i in 1:6000)
+{
+  muestra2[[i]]<-sample(dat$quilates,1000,replace=T)
+}
+M<-sapply(muestra2,mean)
+ggplot(data.frame(M=M), aes(x=M)) + geom_histogram(fill = "blue",color="black")+xlab("Media Muestral")+ylab("Frecuencia")
+```
+
+\flushleft
+
+Podemos ver que tiene una forma similar a la de una distribución normal y según la teoria la distribución de muestreo del promedio se distribuye como:
+\center 
+
+$\bar{X}\sim N(\mu_{\bar{x}}=\mu,\,\sigma^{2}_{\bar{x}}=\frac{\sigma^{2}}{n})$
+\flushleft
+
+donde $\mu=0.7979397$ (media poblacional) y $\sigma^{2}=0.2246867$ (varianza poblacional), además $\frac{\sigma^{2}}{n}=\frac{\sigma^{2}}{1000}=$ `r var(dat$quilates)/1000`  para verificar esto calculemos la media y la varianza de la distribución de muestreo del promedio 
+\center
+
+$\mu_{\bar{x}}$=`r mean(M)`
+
+$\sigma^{2}_{\bar{x}}$=`r varpob(M)`
+
+\flushleft
+podemos darnos ceunta que los valores no son exactamente iguales pero son muy aproximados, esto es porque no consideramos todas las posibles muestras pero los datos calculados son una muy buena aproximación a los datos que obtendriamos si consideraramos todas las muestras posibles 
+
+\center
+\clearpage
+
+## Estimación puntual y por intervalo 
+
+\flushleft
+
+En esta apartado empezaremos con la parte inferencial primero para la variable cualitativa $X_1$ calcularemos $\hat{p}_k$ para cada categoría $k$ donde:
+\center
+
+$\hat{p}_k=\frac{1}{n}\displaystyle\sum_{i=1}^n X_i$
+
+$X_i\sim Ber(p)$
+
+```{r,echo=FALSE,include=F}
+p1<-nrow(f)/nrow(dat)
+p2<-nrow(g)/nrow(dat)
+p3<-nrow(vg)/nrow(dat)
+p4<-nrow(p)/nrow(dat)
+p5<-nrow(id)/nrow(dat)
+```
+
+|categoría|$\hat{p}_k$|
+|---------|-----------|
+|Fair|`r p1`|
+|Good|`r p2`|
+|Very Good|`r p3`|
+|Premium|`r p4`|
+|Ideal|`r p5`|
+\flushleft
+
+Ahora calcularemos el coeficiente de variación muestral $c.v$ para $X_3$ y $X_3$ 
+\center
+
+|   |$X_2$,|$X_3$|
+|---|------|-----|
+|$c.v$|`r sqrt(var(dat$precio))/mean(dat$precio)*100` %|`r sqrt(var(dat$quilate))/mean(dat$quilate)*100` %|
+\flushleft
+
+Podemos ver que la variable con mas disperción en los datos  es la variable de precios $X_2$. Omitiremos la parte de estimar los parámetros de una función de probabilidad pues no encontramos una función que se le asemeje a la distribución de nuestros datos y que además sea posible estimar por Maxima Verosimilitud analiticamente.
+
+Ahora hagamos un intervalos de confianza para cada variable,dado que desconocemos los valores reales de $p_k$ para la variable $X_1$ y los valores de $\mu$ y $\sigma$ para las variables $X_1$ y $X_2$ propongamos lo siguiente 
+$p_k=\frac{1}{5}$ para $X_1$
+
+$\mu=4100$ y $\sigma=1000$ para $X_2$
+
+$\mu=0.6$ y $\sigma=0.1$ para $X_3$
+
+Ahora procedamos a hacer intervalos de confianza para la proporción $p_k$ con un intervalo de confianza del 90%. 
+
+para $p_1$
+
+Sea $x_i:$ i-ésimo diamante con corte Fair y se distribuye 
+\center
+
+$x_i \sim Ber(p_1)$<br>
+\flushleft
+
+Y sea $y=\displaystyle\sum x_i=$ número de diamantes de corte Fair y se distribuye como
+\center
+
+$y\sim Bin(n_1,p_1)$
+\flushleft
+
+Luego $\hat{p_1}=\frac{y}{n}$, pero como $n_1>25$
+$\hat{p_1}\sim^{TLC} N(\mu_{\hat{p_1}}=p,\sigma^2_{\hat{p_1}}=\frac{pq}{n})$
+
+Así que el pivotal es:
+\center 
+
+$Z=\dfrac{\hat{p_1}-p_1}{\sqrt{\frac{{\hat{p_1}\hat{q_1}}}{n}}}\sim N(0,1)$
+\flushleft
+
+Con un intervalo de confianza del $100(1-\alpha)$% para "p" que es
+\center 
+
+$p_1\in(\hat{p_1}\pm Z_{\frac{\alpha}{2}}\sqrt{\frac{\hat{p_1}\hat{q_1}}{n}})$
+además definimos $(1-\alpha)=0.9 \rightarrow \alpha =0.1$<br>
+
+```{r,echo=FALSE,include=F}
+intprop<-function(x,n)
+{
+  p<-length(x)/n
+  c(p-qnorm(0.1/2,lower.tail = F)*sqrt((p*(1-p))/n),p+qnorm(0.1/2,lower.tail = F)*sqrt((p*(1-p))/n))
+}
+```
+
+$p_1\in$(`r intprop(f$corte,53940)[1]`,`r intprop(f$corte,53940)[2]`)
+\flushleft
+
+Nos damos cuenta que el valor que habíamos propuesto está fuera del intervalo, un procedimiento similar es para las otras proporciones así que procedamos a calularlas directamente 
+\center 
+
+|categoria|Intervalo de Confianza|
+|:-------:|:--------------------:|
+|Good|(`r intprop(g$corte,53940)[1]`,`r intprop(g$corte,53940)[2]`)|
+|Very Good|(`r intprop(vg$corte,53940)[1]`,`r intprop(vg$corte,53940)[2]`)|
+|Premium|(`r intprop(p$corte,53940)[1]`,`r intprop(p$corte,53940)[2]`)|
+|Ideal|(`r intprop(id$corte,53940)[1]`,`r intprop(id$corte,53940)[2]`)|
+\flushleft
+
+Podemos ver que ninguno de los valores propuestos para $p_k$ está dentro de el intervalo, y de nuevo podemos ver que hay menos proporción en los datos de corte Fair y el corte que tiene mayor proporción es el corte Ideal. Ahora procedamos a hacer intervalos de confianza para $\mu$  con una confianza del 90% y para $\sigma^2$ con una confianza del 95%. 
+
+Para la variable $x_2$:
+
+$x_2=$ precio de los diamantes
+
+Tenemos que suponer que $x_2$ se distribuye como una normal
+\center 
+
+$x_2 \sim N(\mu=?,\sigma^2=?)$
+\flushleft
+
+Tenemos que $s^2=\sigma^2$, luego una cantidad pivotal es: 
+\center 
+
+$T=\dfrac{\bar{x}-\mu}{\frac{s}{\sqrt{n}}}$
+\flushleft
+
+con un I.C para $\mu$ del $100(1-\alpha)$% de confianza, que es:
+\center 
+
+$\mu\in(\bar{x} \pm t_{\frac{\alpha}{2}},_{n-1} \dfrac{s}{\sqrt{n}})$
+\flushleft
+
+además definimos $(1-\alpha)=0.9 \rightarrow \alpha =0.1$<br>
+
+```{r,echo=FALSE,include=F}
+intmu<-function(x)
+{
+  c(mean(x)-qt(0.1/2,length(x)-1,lower.tail =F)*sqrt(var(x))/sqrt(length(x)),mean(x)+qt(0.1/2,length(x)-1,lower.tail =F)*sqrt(var(x))/sqrt(length(x)))
+}
+```
+\center 
+
+$\mu\in$(`r intmu(dat$precio)[1]`,`r intmu(dat$precio)[2]`)
+\flushleft
+
+Ahora, para el cálculo del intervalo de confianza de la varianza $\sigma^2$ definimos una nueva cantidad pivotal 
+\center 
+
+$J=\dfrac{(n-1)s^2}{\sigma^2}$
+
+\flushleft
+Y con un I.C para $\sigma^2$ del $100(1-\alpha)$% de confianza, que es:
+\center 
+
+$\sigma^2\in \left(\dfrac{(n-1)s^2}{\chi^2_{\frac{\alpha}{2}},_{n-1}},\dfrac{(n-1)s^2}{\chi^2_{1-\frac{\alpha}{2}},_{n-1}}\right)$
+\flushleft
+
+además definimos $(1-\alpha)=0.95 \rightarrow \alpha =0.05$<br>
+
+```{r,echo=FALSE,include=F}
+intsig<-function(x)
+{
+  n<-(length(x)-1)
+  num<-n*var(x)
+  c(num/qchisq(0.05/2,n,lower.tail =F),num/qchisq(1-0.05/2,n,lower.tail =F))
+}
+```
+\center 
+
+$\sigma^2\in$(`r intsig(dat$precio)[1]`,`r intsig(dat$precio)[2]`)
+
+$\sigma\in$(`r sqrt(intsig(dat$precio)[1])`,`r sqrt(intsig(dat$precio)[2])`)
+\flushleft
+
+Nos damos cuenta que en ambos casos la media y varianzas propuestas están fuera dell intervalo, un procedimiento similar es para la variable $X_2$ asi que calculemos directamente los intervalos de confianza de $\mu$ y $\sigma$ para $X_2$:
+\center 
+
+$\mu\in$(`r intmu(dat$quilates)[1]`,`r intmu(dat$quilates)[2]`)
+
+$\sigma^2\in$(`r intsig(dat$quilates)[1]`,`r intsig(dat$quilates)[2]`)
+
+$\sigma\in$(`r sqrt(intsig(dat$quilates)[1])`,`r sqrt(intsig(dat$quilates)[2])`)
+\flushleft
+
+Podemos ver de nuevo que en ninguno de los dos casos los valores propuestos caen dentro de el intervalo. Ahora calculemos intervalos de  confianza para la diferencia de medias de la variable precio entre cada categoria, empezemos con la diferencia de medias entre la categoria Fair y Good 
+
+Sea 
+$x_1=$ precio de diamantes con corte Fair
+
+$x_2$ precio de diamantes con corte Good
+
+Supongamos que se distribuyen normalmente y que son independientes  
+\center 
+
+$x_1\sim N(\mu_1=?,\sigma^2_1=?)$
+
+$x_2\sim N(\mu_2=?,\sigma^2_2=?)$
+\flushleft
+
+también supongamos que $\sigma^2_1=\sigma^2_2=\sigma^2=?$ y $\sigma^2=s_{pooled}^2$ . Donde: 
+
+$n_1$=`r length(f$precio)`,$n_2$=`r length(g$precio)`$\alpha=0.15$
+
+```{r,echo=FALSE,include=F}
+
+spooled<-function(x,y){
+  ((length(x)-1)*var(x)+(length(y)-1)*var(y))/(length(x)+length(y)-2)
+}
+
+```
+\center 
+
+$s^2_{pooled}=\dfrac{(n_1-1)s^2_1+(n_2-1)s^2_2}{n_1+n_2-2}=$`r spooled(f$precio,g$precio)`
+\flushleft
+
+Y tenemos la cantidad pivotal 
+\center 
+
+$T=\dfrac{(\bar{x}_1-\bar{x}_2)-(\mu_1-\mu_2)}{s_{pooled}\ \sqrt{\frac{1}{n_1}+\frac{1}{n_2}}}$
+\flushleft
+
+y con I.C. para $\mu_1-\mu_2$ del $100(1-\alpha)$% de confianza, que es:
+\center 
+
+$(\mu_1-\mu_2)\in\left( (\bar{x}_1-\bar{x}_2)\pm t_{\frac{\alpha}{2}},_{n_1+n_2-2} s_{pooled}\ \sqrt{\frac{1}{n_1}+\frac{1}{n_2}}\right)$
+\flushleft
+
+sustituyendo los datos y haciendo cálculos:
+
+```{r,echo=FALSE,include=F}
+
+difmean<-function(x,y){
+  c(mean(x)-mean(y)-qt(0.15/2,length(x)+length(y)-2,lower.tail = F)*sqrt(spooled(x,y))*sqrt(1/length(x)+1/length(y)),mean(x)-mean(y)+qt(0.15/2,length(x)+length(y)-2,lower.tail = F)*sqrt(spooled(x,y))*sqrt(1/length(x)+1/length(y)))
+}
+
+```
+\center 
+
+$(\mu_1-\mu_2)\in$(`r difmean(f$precio,g$precio)[1]`,`r difmean(f$precio,g$precio)[2]`)
+\flushleft
+
+Dado el intervalo de confianza podemos estimar que $\mu1>\mu2$, un procedimiento similar es para las otras diferencias de medias así que procedamos a hacerlo directamente 
+\center 
+
+| Diferencia de la media | Intervalo de confianza | Inferencia |
+|:----------:|:-------:|:-------:|
+| $\mu_1-\mu_2$ | (`r difmean(f$precio,g$precio)[1]`,`r difmean(f$precio,g$precio)[2]`) | $\mu_1>\mu_2$ |
+| $\mu_1-\mu_3$ | (`r difmean(f$precio,vg$precio)[1]`,`r difmean(f$precio,vg$precio)[2]`) | $\mu_1>\mu_3$ |
+| $\mu_1-\mu_4$ | (`r difmean(f$precio,p$precio)[1]`,`r difmean(f$precio,p$precio)[2]`) | $\mu_1<\mu_4$ |
+| $\mu_1-\mu_5$ | (`r difmean(f$precio,id$precio)[1]`,`r difmean(f$precio,id$precio)[2]`) | $\mu_1>\mu_5$ |
+| $\mu_2-\mu_3$ | (`r difmean(g$precio,vg$precio)[1]`,`r difmean(g$precio,vg$precio)[2]`) | $\mu_2=\mu_3$ |
+| $\mu_2-\mu_4$ | (`r difmean(g$precio,p$precio)[1]`,`r difmean(g$precio,p$precio)[2]`) | $\mu_2<\mu_4$ |
+| $\mu_2-\mu_5$ | (`r difmean(g$precio,id$precio)[1]`,`r difmean(g$precio,id$precio)[2]`) | $\mu_2>\mu_5$ ||
+| $\mu_3-\mu_4$ | (`r difmean(vg$precio,p$precio)[1]`,`r difmean(vg$precio,p$precio)[2]`) | $\mu_3<\mu_4$ |
+| $\mu_3-\mu_5$ | (`r difmean(vg$precio,id$precio)[1]`,`r difmean(vg$precio,id$precio)[2]`) | $\mu_3>\mu_5$ |
+| $\mu_4-\mu_5$ | (`r difmean(p$precio,id$precio)[1]`,`r difmean(p$precio,id$precio)[2]`) | $\mu_4>\mu_5$ |
+\flushleft
+
+Donde:
+\center 
+
+| Media | Categoría |
+|:----------:|:-------:|
+| $\mu_1$ | Fair |
+| $\mu_2$ | Good |
+| $\mu_3$ | Very Good |
+| $\mu_4$ | Premium |
+| $\mu_5$ | Ideal |
+\flushleft
+
+De las tablas anteriores podemos inferir que $\sigma_5^2<\sigma_2^2=\sigma_3^2<\sigma_1^2<\sigma_4^2$ y en consecuencia el precio promedio más bajo lo tiene el corte Ideal y el precio promedio más alto lo tiene el corte Premmium. Ahora construiremos intervalos de confinza del 95% de confianza para el cociente de varianzas, seguiremos usando $x_1$ y $x_2$, definimos la cantidad pivotal
+\center 
+$F=\dfrac{\sigma^2_1 s^2_2}{\sigma^2_2 s^2_1}\sim F_{\nu_1},_{\nu_2}$
+\flushleft
+Donde $\nu_1=n_1-1$ y $\nu_2=n_2-1$ son los grados de libertad y $\alpha=0.03$.
+Además, tenemos que un I.C. para $\dfrac{\sigma^2_1}{\sigma^2_2}$ del $100(1-\alpha)$% de confianza es:
+\center 
+$\dfrac{\sigma^2_2}{\sigma^2_1}\in\left( \dfrac{s^2_2}{s^2_1}f_{1-\frac{\alpha}{2}},_{\nu_1},_{\nu_2},\dfrac{s^2_2}{s^2_1}f_{\frac{\alpha}{2}},_{\nu_1},_{\nu_2} \right)$
+
+```{r,echo=FALSE,include=F}
+
+divar<-function(x,y){
+  c(var(x)/var(y)*qf(1-0.03/2,length(y)-1,length(x)-1,lower.tail = F),var(x)/var(y)*qf(0.03/2,length(y)-1,length(x)-1,lower.tail = F))
+}
+
+```
+
+$\dfrac{\sigma^2_2}{\sigma^2_1}\in$(`r divar(g$precio,f$precio)[1]`,`r divar(g$precio,f$precio)[2]`)
+\flushleft
+por lo tanto se puede inferir que $\sigma^2_2=\sigma^2_1$
+
+Al igual que en la diferencia de medias vamos a mostrar los otros intervalos de confianza en tablas 
+\center 
+
+| Diferencia de Varianzas | Intervalo de confianza | Inferencia |
+|:----------:|:-------:|-------:|
+| $\dfrac{\sigma^2_1}{\sigma^2_3}$ | (`r divar(f$precio,vg$precio)[1]`,`r divar(f$precio,vg$precio)[2]`) | $\sigma^2_1<\sigma^2_3$ |
+| $\dfrac{\sigma^2_1}{\sigma^2_4}$ | (`r divar(f$precio,p$precio)[1]`,`r divar(f$precio,p$precio)[2]`) | $\sigma^2_1<\sigma^2_4$ |
+| $\dfrac{\sigma^2_1}{\sigma^2_5}$ | (`r divar(f$precio,id$precio)[1]`,`r divar(f$precio,id$precio)[2]`) | $\sigma^2_1<\sigma^2_5$ |
+| $\dfrac{\sigma^2_2}{\sigma^2_3}$ | (`r divar(g$precio,vg$precio)[1]`,`r divar(g$precio,vg$precio)[2]`) | $\sigma^2_2<\sigma^2_3$ |
+| $\dfrac{\sigma^2_2}{\sigma^2_4}$ | (`r divar(g$precio,p$precio)[1]`,`r divar(g$precio,p$precio)[2]`) | $\sigma^2_2<\sigma^2_4$ |
+| $\dfrac{\sigma^2_2}{\sigma^2_5}$ | (`r divar(g$precio,id$precio)[1]`,`r divar(g$precio,id$precio)[2]`) | $\sigma^2_2<\sigma^2_5$ ||
+| $\dfrac{\sigma^2_3}{\sigma^2_4}$ | (`r divar(vg$precio,p$precio)[1]`,`r divar(vg$precio,p$precio)[2]`) | $\sigma^2_3<\sigma^2_4$ |
+| $\dfrac{\sigma^2_3}{\sigma^2_5}$ | (`r divar(vg$precio,id$precio)[1]`,`r divar(vg$precio,id$precio)[2]`) | $\sigma^2_3>\sigma^2_5$ |
+| $\dfrac{\sigma^2_4}{\sigma^2_5}$ | (`r divar(p$precio,id$precio)[1]`,`r divar(p$precio,id$precio)[2]`) | $\sigma^2_4>\sigma^2_5$ |
+\flushleft
+
+Donde:
+\center 
+
+| Varianza | Categoría |
+|:--------:|:---------:|
+| $\sigma^2_1$ | Fair |
+| $\sigma^2_2$ | Good |
+| $\sigma^2_3$ | Very Good |
+| $\sigma^2_4$ | Premium |
+| $\sigma^2_5$ | Ideal |
+\flushleft
+
+De la misma forma que en diferencias de medias podemos hacer una inferencia mas general: $\sigma_1^2=\sigma_2^2<\sigma_5^2<\sigma_3^2<\sigma_4^2$
+\center 
+\clearpage
+
+## Pruebas de hipótesis
+\flushleft
+
+Consideramos la variable $x_2$, referente al precio, para realizar un contraste de hipótesis bilateral. Tomamos en cuenta el tamaño de la muestra $n=53,940$ y proponemos el valor de la media $\mu=4,100$ y consideramos un nivel de significancia del 25% 
+
+$H_o$: Precio promedio es igual a 4,100 <br>
+
+$H_a$: Precio promedio es distinto a 4,100 <br>
+
+$H_o$: $\mu= 4,100\hspace{2cm}vs\hspace{2cm}H_a \mu\ne 4,100$ 
+
+
+Estadístico de prueba:
+\center 
+$T=\dfrac{\bar{x}-\mu_0}{\frac{s}{\sqrt{n}}}\sim^{H_0}t_{n-1}$
+\flushleft
+
+Región Crítica (RR): 
+
+
+RR={$T|T\le -t_{\frac{\alpha}{2}},_{n-1},$ ó $T\ge t_{\frac{\alpha}{2}},_{n-1}$} 
+
+RR={$T|T\le-t_{\frac{\alpha}{2}},_{n-1}=-t_{\frac{0.25}{2}},_{53940-1}=-t_{0.125},_{53939}=-1.150362$ ó $T|T\ge t_{\frac{\alpha}{2}},_{n-1}=1.150362$} o bien,
+
+
+RR={$\bar{x}|\bar{x}\le\mu_0 -t_{\frac{\alpha}{2}},_{n-1}\left( \dfrac{s}{\sqrt{n}}\right)$ ó $\bar{x}\ge\mu_0 +t_{\frac{\alpha}{2}},_{n-1}\left( \dfrac{s}{\sqrt{n}}\right)$}
+
+RR={$\bar{x}|\bar{x}\le$ `r 4100-qt(0.25/2,53940-1,lower.tail = F)*sqrt(var(dat$precio))/sqrt(53940)` ó $\bar{x}\ge$ `r 4100+qt(0.25/2,53940-1,lower.tail = F)*sqrt(var(dat$precio))/sqrt(53940)`}
+
+Donde: 
+\center 
+$T_{calc}=\dfrac{\bar{x}-\mu_0}{\frac{s}{\sqrt{n}}}=\dfrac{3933-4100}{\frac{3989.4396}{\sqrt{53940}}}=-9.7220$ 
+
+\flushleft
+
+Como $T_{calc}=-9.7220\le -1.150362$ rechazo la hipótesis nula 
+
+Valor-p.
+
+valor-p=$2 P(T\le T_{calc}=-9.7220)=$ `r 2*pt(-9.7220,53940-1)`
+
+como valor-p $=2.534413e^{-22}<\alpha=0.25$ rechazo $H_o$ y se conclutye que el precio medio de diamantes es diferente de 4100 
+
+Ahora grafiquemos la curva de potencia, primero definamos el error tipo 2:
+
+$\beta$=P(no rechazar $H_0$|,$H_0$ falsa)=P($4080.24\le\bar{x}\le4119.76|H_a=\mu_a$)
+\center 
+
+=P($\dfrac{4080.24-\mu_a}{\frac{s}{\sqrt{n}}}\le\dfrac{\bar{x}-\mu_a}{\frac{s}{\sqrt{n}}}\le \dfrac{4119.76-\mu_a}{\frac{s}{\sqrt{n}}}$)
+
+=P($\dfrac{4080.24-\mu_a}{ 17.17736}\le T\le \dfrac{4119.76-\mu_a}{ 17.17736}$)
+\flushleft
+
+Ahora la curva de potencia se define como:
+
+$\pi=1-\beta=1-P(\dfrac{4080.24-\mu_a}{ 17.17736}\le T\le \dfrac{4119.76-\mu_a}{ 17.17736})$
+
+Dando distintos valores a $\mu_a$ alrededor de $\mu_0$ tenemos la siguiente gráfica:
+
+\center 
+```{r,echo=FALSE,fig.height=3.5,fig.width=4}
+potencia<-function(mua){
+  beta<-pt((4119.76-mua)/17.17736,df=53939)-pt((4080.24-mua)/17.17736,df=53939)
+  pot<-1-beta
+}
+mu<-c(3900:4300)
+plot(mu,potencia(mu),type="l",ylim=c(0,1),main="curva potencia",xlab="mua",ylab="pi")
+abline(v=4100,col="red")
+abline(h=0.25,col="blue")
+
+```
+\flushleft
+
+Podemos ver que entre más lejos esta $\mu_a$ de $\mu_0$ la probabilidad de rechazar $\mu_0$ es mayor y la probabilidad minima se da cuando $\mu_a=\mu_0=4100$ y el la probabilidad es de 0.25 que es el mismo valor de alpha 
+Ahora vamos a realizar un contraste de hipótesis bilateral para la diferencia de medias, primero vamos a realizar una prueba de hipótesis para $\mu_1$-$\mu_2$ con un nivel de significancia del 15% progongamos como hipótesis nula el valor medio encontrado en intervalos de confianza,
+
+Sea
+
+$x_1=$ precio de diamantes con corte Fair
+
+$x_2$ precio de diamantes con corte Good
+
+Supongamos que se distribuyen normalmente y que son independientes  
+\center 
+
+$x_1\sim N(\mu_1=?,\sigma^2_1=?)$
+
+$x_2\sim N(\mu_2=?,\sigma^2_2=?)$
+\flushleft
+
+$H_0$:la diferencia de medias $\mu_1$-$\mu_2$ es 0
+
+$H_a$:la diferencia de medias $\mu_1$-$\mu_2$ es diferente de 0`
+
+$H_0:\mu_1-\mu_2=0$       vs          $H_a:\mu_1-\mu_2\ne0$
+
+Estadístico de Prueba:
+\center 
+
+$T=\dfrac{(\bar{x}_1-\bar{x}_2)-(\mu_1-\mu_2)}{s_p\ \sqrt{\frac{1}{n_1}+\frac{1}{n_2}}}\sim t_{n_1+n_2-2,\alpha}$
+\flushleft
+ 
+donde 
+\center 
+
+$s^2_p=\dfrac{(n_1-1)s^2_1+(n_2-1)s^2_2}{n_1+n_2-2}=$
+
+```{r,echo=FALSE,include=F}
+
+tcal<-function(x,y){
+  (mean(x)-mean(y))/(sqrt(spooled(x,y))*sqrt(1/length(x)+1/length(y)))
+  
+}
+
+```
+\flushleft
+
+así que 
+\center 
+
+T=`r tcal(f$precio,g$precio)`
+\flushleft
+
+tenemos que la Región crítica es 
+
+RR={$T|T\le -t_{\frac{\alpha}{2},\nu}$ ó $T\ge t_{\frac{\alpha}{2},\nu}$}
+donde $\nu=n_1+n_2-2$
+
+RR={$T|T\le$`r -qt(0.15/2,length(f$precio)+length(g$precio)-2,lower.tail=F)` ó $T\ge$ `r qt(0.15/2,length(f$precio)+length(g$precio)-2,lower.tail=F)`}
+
+como T=4.098388> 1.439701 se rechaza $H_0$ y se puede inferir que $\mu_1$>$\mu_2$
+
+De manera similar hagamos una prueba de hipótesis para las otra diferencias de medias:
+\center 
+
+| Diferencia de la media |$T_{calc}$| Región de Riesgo| Inferencia |
+|:----------------------:|:--------:|:---------------:|:----------:|
+| $\mu_1-\mu_3$ | `r tcal(f$precio,vg$precio)`|$T|T\le$`r -qt(0.15/2,length(f$precio)+length(vg$precio)-2,lower.tail=F)` ó $T\ge$ `r qt(0.15/2,length(f$precio)+length(vg$precio)-2,lower.tail=F)`| $\mu_1>\mu_3$ |
+| $\mu_1-\mu_4$ | `r tcal(f$precio,p$precio)`|$T|T\le$`r -qt(0.15/2,length(f$precio)+length(p$precio)-2,lower.tail=F)` ó $T\ge$ `r qt(0.15/2,length(f$precio)+length(p$precio)-2,lower.tail=F)`| $\mu_1<\mu_4$ |
+| $\mu_1-\mu_5$ |`r tcal(f$precio,id$precio)`|$T|T\le$`r -qt(0.15/2,length(f$precio)+length(id$precio)-2,lower.tail=F)` ó $T\ge$ `r qt(0.15/2,length(f$precio)+length(id$precio)-2,lower.tail=F)`| $\mu_1>\mu_5$ |
+| $\mu_2-\mu_3$ | `r tcal(g$precio,vg$precio)`|$T|T\le$`r -qt(0.15/2,length(g$precio)+length(vg$precio)-2,lower.tail=F)` ó $T\ge$ `r qt(0.15/2,length(g$precio)+length(vg$precio)-2,lower.tail=F)`| $\mu_2=\mu_3$ |
+| $\mu_2-\mu_4$ | `r tcal(g$precio,p$precio)`|$T|T\le$`r -qt(0.15/2,length(g$precio)+length(p$precio)-2,lower.tail=F)` ó $T\ge$ `r qt(0.15/2,length(g$precio)+length(p$precio)-2,lower.tail=F)` | $\mu_2<\mu_4$ |
+| $\mu_2-\mu_5$ | `r tcal(g$precio,id$precio)`|$T|T\le$`r -qt(0.15/2,length(g$precio)+length(id$precio)-2,lower.tail=F)` ó $T\ge$ `r qt(0.15/2,length(g$precio)+length(id$precio)-2,lower.tail=F)`| $\mu_2>\mu_5$ |
+| $\mu_3-\mu_4$ | `r tcal(vg$precio,p$precio)`|$T|T\le$`r -qt(0.15/2,length(vg$precio)+length(p$precio)-2,lower.tail=F)` ó $T\ge$ `r qt(0.15/2,length(vg$precio)+length(p$precio)-2,lower.tail=F)` | $\mu_3<\mu_4$ |
+| $\mu_3-\mu_5$ | `r tcal(vg$precio,id$precio)`|$T|T\le$`r -qt(0.15/2,length(vg$precio)+length(id$precio)-2,lower.tail=F)` ó $T\ge$ `r qt(0.15/2,length(vg$precio)+length(id$precio)-2,lower.tail=F)` | $\mu_3>\mu_5$ |
+| $\mu_4-\mu_5$ | `r tcal(p$precio,id$precio)`|$T|T\le$`r -qt(0.15/2,length(p$precio)+length(id$precio)-2,lower.tail=F)` ó $T\ge$ `r qt(0.15/2,length(p$precio)+length(id$precio)-2,lower.tail=F)` | $\mu_4>\mu_5$ |
+\flushleft
+
+Ahora comparemos los resultados obtenidos en intervalos de confianza y en pruebas de hipótesis 
+\center 
+
+|Intervalos de Confianza|Pruebas de hipótesis|
+|:---------------------:|:------------------:|
+|$\mu_1>\mu_2$ |$\mu_1>\mu_2$ |
+|$\mu_1>\mu_3$ |$\mu_1>\mu_3$ |
+|$\mu_1<\mu_4$ |$\mu_1<\mu_4$ |
+|$\mu_1>\mu_5$ |$\mu_1>\mu_5$ |
+|$\mu_2=\mu_3$ |$\mu_2=\mu_3$ |
+|$\mu_2<\mu_4$ |$\mu_2<\mu_4$ |
+|$\mu_2>\mu_5$ |$\mu_2>\mu_5$ |
+|$\mu_3<\mu_4$ |$\mu_3<\mu_4$ |
+|$\mu_3>\mu_5$ |$\mu_3>\mu_5$ |
+|$\mu_4>\mu_5$ |$\mu_4>\mu_5$ |
+
+Podemos ver que los resultados en pruebas de hipótesis son los mismos que en intervalos de confianza, por lo tanto las conclusiones son las mismas.
